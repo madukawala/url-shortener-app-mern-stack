@@ -136,7 +136,7 @@ url-shortener-app/
 
 2. **Frontend Environment Variables**
    ```bash
-   cd ../frontend
+   cd ../frontend/src
    cp .env.example .env
    ```
    
