@@ -312,7 +312,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👨‍💻 Author
 
-Maddy Kandasamy - [GitHub](https://github.com/yourusername)
+Maddy Kandasamy - [GitHub](https://github.com/madukawala)
 
 ## 🙏 Acknowledgments
 
