@@ -98,7 +98,7 @@ url-shortener-app/
 1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd url-shortener-app
+   cd url-shortener-app-mern-stack
    ```
 
 2. **Install root dependencies**
