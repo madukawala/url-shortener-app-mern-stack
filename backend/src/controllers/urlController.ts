@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import Url from '../models/Url';
 import { generateShortCode, isValidUrl, normalizeUrl } from '../utils/urlUtils';
 import { CreateUrlRequest, ApiResponse, UrlResponse } from '../types';
@@ -31,7 +32,7 @@ export const createShortUrl = async (req: Request<{}, ApiResponse<UrlResponse>, 
       res.json({
         success: true,
         data: {
-          _id: existingUrl._id.toString(),
+          _id: (existingUrl._id as mongoose.Types.ObjectId).toString(),
           originalUrl: existingUrl.originalUrl,
           shortCode: existingUrl.shortCode,
           shortUrl: existingUrl.shortUrl,
@@ -69,7 +70,7 @@ export const createShortUrl = async (req: Request<{}, ApiResponse<UrlResponse>, 
     res.status(201).json({
       success: true,
       data: {
-        _id: savedUrl._id.toString(),
+        _id: (savedUrl._id as mongoose.Types.ObjectId).toString(),
         originalUrl: savedUrl.originalUrl,
         shortCode: savedUrl.shortCode,
         shortUrl: savedUrl.shortUrl,
@@ -123,12 +124,12 @@ export const redirectUrl = async (req: Request<{ shortCode: string }>, res: Resp
   }
 };
 
-export const getAllUrls = async (req: Request, res: Response<ApiResponse<UrlResponse[]>>): Promise<void> => {
+export const getAllUrls = async (_req: Request, res: Response<ApiResponse<UrlResponse[]>>): Promise<void> => {
   try {
     const urls = await Url.find({}).sort({ createdAt: -1 }).limit(50);
 
     const formattedUrls: UrlResponse[] = urls.map(url => ({
-      _id: url._id.toString(),
+      _id: (url._id as mongoose.Types.ObjectId).toString(),
       originalUrl: url.originalUrl,
       shortCode: url.shortCode,
       shortUrl: url.shortUrl,
@@ -167,7 +168,7 @@ export const getUrlStats = async (req: Request<{ shortCode: string }>, res: Resp
     res.json({
       success: true,
       data: {
-        _id: url._id.toString(),
+        _id: (url._id as mongoose.Types.ObjectId).toString(),
         originalUrl: url.originalUrl,
         shortCode: url.shortCode,
         shortUrl: url.shortUrl,
@@ -178,6 +179,34 @@ export const getUrlStats = async (req: Request<{ shortCode: string }>, res: Resp
     });
   } catch (error) {
     console.error('Error fetching URL stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+};
+
+export const deleteUrl = async (req: Request<{ id: string }>, res: Response<ApiResponse<null>>): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const deletedUrl = await Url.findByIdAndDelete(id);
+
+    if (!deletedUrl) {
+      res.status(404).json({
+        success: false,
+        error: 'URL not found'
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: null,
+      message: 'URL deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting URL:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

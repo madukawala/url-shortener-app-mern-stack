@@ -35,6 +35,13 @@ export const urlService = {
     }
     return response.data.data!;
   },
+
+  deleteUrl: async (id: string): Promise<void> => {
+    const response = await api.delete<ApiResponse<null>>(`/api/urls/${id}`);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to delete URL');
+    }
+  },
 };
 
 export default api;

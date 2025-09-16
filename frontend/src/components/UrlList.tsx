@@ -4,10 +4,12 @@ import { Url } from '../types';
 interface Props {
   urls: Url[];
   loading: boolean;
+  onDelete: (id: string) => void;
 }
 
-const UrlList: React.FC<Props> = ({ urls, loading }) => {
+const UrlList: React.FC<Props> = ({ urls, loading, onDelete }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const copyToClipboard = async (text: string, id: string) => {
     try {
@@ -16,6 +18,17 @@ const UrlList: React.FC<Props> = ({ urls, loading }) => {
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this URL?')) {
+      setDeletingId(id);
+      try {
+        await onDelete(id);
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -78,7 +91,7 @@ const UrlList: React.FC<Props> = ({ urls, loading }) => {
                 Created
               </th>
               <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#374151' }}>
-                Action
+                Actions
               </th>
             </tr>
           </thead>
@@ -101,15 +114,24 @@ const UrlList: React.FC<Props> = ({ urls, loading }) => {
                   </a>
                 </td>
                 <td style={{ padding: '16px' }}>
-                  <code style={{ 
-                    backgroundColor: '#f3f4f6', 
-                    padding: '4px 8px', 
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    color: '#1f2937'
-                  }}>
-                    {url.shortUrl}
-                  </code>
+                  <a 
+                    href={url.shortUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <code style={{ 
+                      backgroundColor: '#f3f4f6', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      color: '#3b82f6',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s'
+                    }}>
+                      {url.shortUrl}
+                    </code>
+                  </a>
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
                   <span style={{ 
@@ -127,19 +149,37 @@ const UrlList: React.FC<Props> = ({ urls, loading }) => {
                   {formatDate(url.createdAt)}
                 </td>
                 <td style={{ padding: '16px', textAlign: 'center' }}>
-                  <button
-                    onClick={() => copyToClipboard(url.shortUrl, url._id)}
-                    className="btn"
-                    style={{
-                      backgroundColor: copiedId === url._id ? '#10b981' : '#e5e7eb',
-                      color: copiedId === url._id ? 'white' : '#374151',
-                      padding: '6px 12px',
-                      fontSize: '12px',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {copiedId === url._id ? 'Copied!' : 'Copy'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <button
+                      onClick={() => copyToClipboard(url.shortUrl, url._id)}
+                      className="btn"
+                      style={{
+                        backgroundColor: copiedId === url._id ? '#10b981' : '#e5e7eb',
+                        color: copiedId === url._id ? 'white' : '#374151',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {copiedId === url._id ? 'Copied!' : 'Copy'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(url._id)}
+                      disabled={deletingId === url._id}
+                      className="btn"
+                      style={{
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        opacity: deletingId === url._id ? 0.5 : 1,
+                        cursor: deletingId === url._id ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {deletingId === url._id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
